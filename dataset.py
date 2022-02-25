@@ -17,7 +17,7 @@ from augmentations import SSDAugmentation,BaseTransform
 
 
 class ListDataset(data.Dataset):
-    def __init__(self, root, train, transform, input_size):
+    def __init__(self, root, train, transform, input_size, ext):
         '''
         Args:
           root: (str) ditectory to images.
@@ -29,6 +29,7 @@ class ListDataset(data.Dataset):
         self.train = train
         self.transform = transform
         self.input_size = input_size
+        self.ext = ext
 
         self.fnames = []
         self.boxes = []
@@ -38,7 +39,8 @@ class ListDataset(data.Dataset):
 
 
         self._labpath = sorted(glob.glob("%s/*.*" % self.root))
-        self._imgpath = [path.replace("labels", "image").replace(".txt", ".jpg") for path in self._labpath]
+        # self._imgpath = [path.replace("label_txt", "image").replace(".txt", ".png") for path in self._labpath]
+        self._imgpath = [path.replace("label_txt", "image").replace(".txt", ".{}".format(self.ext)) for path in self._labpath]######################
 
 
     def __getitem__(self, index):

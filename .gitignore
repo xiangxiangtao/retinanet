@@ -8,3 +8,8 @@ model/
 result/
 weights/
 __pycache__
+
+data/
+detection/
+eval/
+logs/

@@ -20,8 +20,14 @@ from augmentations import BaseTransform
 from matplotlib import pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
+import warnings
+warnings.filterwarnings("ignore")
 
-the_classes = ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches']
+thresh=0.7#################################################################################################################
+
+# the_classes = ['smoke']################################################################################################
+the_classes = ['gas']
+
 class ImageFolder(Dataset):
     def __init__(self, folder_path, img_size=300):
         self.files = sorted(glob.glob("%s/*.*" % folder_path))
@@ -48,22 +54,25 @@ class ImageFolder(Dataset):
         return len(self.files)
 
 parser = argparse.ArgumentParser(description='RetinaNet Detection')
-parser.add_argument('--trained_model', default='weights/ckpt_1744.pth',type=str, help='Trained state_dict file path to open')
-parser.add_argument('--save_folder', default='output/', type=str,help='Dir to save results')
-parser.add_argument('--dataset_root', default='data/samples', help='Dataset root directory path')
+parser.add_argument('--trained_model', default='weights/weight_retinanet_composite18.1_epoch4.pth',type=str, help='Trained state_dict file path to open')#####
+parser.add_argument('--save_folder', default='detection/', type=str,help='Dir to save results')
+parser.add_argument('--dataset_root', default='data/dataset/real/real_7_gmy/val/image', help='Dataset root directory path')###############
 parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=0, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=300, help="size of each image dimension")
 args = parser.parse_args()
 
-
-os.makedirs("output", exist_ok=True)
+det_dataset="real_7_gmy"####################################
+train_dataset="composite18.1"##################################
+detect_folder=os.path.join(args.save_folder,"det_retinanet_{}_confThresh{}_trainOn{}".format(det_dataset,thresh,train_dataset))
+os.makedirs(detect_folder, exist_ok=True)
 
 net = RetinaNet()
+print(args.trained_model)
 net.load_state_dict(torch.load(args.trained_model))
 net.cuda()
 
-
+print(args.dataset_root)
 dataloader = DataLoader(
         ImageFolder(args.dataset_root, img_size=args.img_size),
         batch_size=args.batch_size,
@@ -84,7 +93,7 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
     # print('Decoding..')
     encoder = DataEncoder()
     # boxes, labels = encoder.decode(loc_preds.data.squeeze(), cls_preds.data.squeeze(), (w, h))
-    boxes, labels, scores = encoder.decode(loc_preds.data, cls_preds.data, 0.2, (args.img_size, args.img_size))
+    boxes, labels, scores = encoder.decode(loc_preds.data, cls_preds.data, thresh, (args.img_size, args.img_size))
 
     current_time = time.time()
     inference_time = current_time - prev_time
@@ -95,7 +104,8 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
     print("\t+ Batch %d, Inference Time: %s" % (batch_i, inference_time))
 
     cmap = plt.get_cmap("tab20b")
-    colors = [cmap(i) for i in np.linspace(0, 1, 6)]
+    # colors = [cmap(i) for i in np.linspace(0, 1, 6)]
+    colors = [(1, 1, 0)]
 
     img = Image.open(img_paths[0])
     img = img.resize((300, 300))
@@ -109,6 +119,8 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
     label = labels.data
     score = scores.data
     # print(boxe, label, score)
+    # print(len(boxe))
+    # print(len(score))
 
     if boxe is not None:
 
@@ -124,15 +136,15 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
             # print(pt)
             color = colors[int(cls)]
             # Create a Rectangle patch
-            bbox = patches.Rectangle(*coords, linewidth=2, edgecolor=color, facecolor="none")
+            bbox = patches.Rectangle(*coords, linewidth=3, edgecolor=color, facecolor="none")
             # Add the bbox to the plot
             ax.add_patch(bbox)
             # Add label
             plt.text(
                 pt[0],
                 pt[1],
-                s=cls_name,
-                color="white",
+                s=cls_name+" {:.2f}".format(score[i]),
+                color="red",
                 verticalalignment="top",
                 bbox={"color": color, "pad": 0},
             )
@@ -142,7 +154,7 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
     plt.gca().xaxis.set_major_locator(NullLocator())
     plt.gca().yaxis.set_major_locator(NullLocator())
     filename = img_paths[0].split("/")[-1].split(".")[0]
-    plt.savefig(f"output/{filename}.jpg", bbox_inches="tight",pad_inches=0.0)
+    plt.savefig(f"{detect_folder}/{filename}.png", bbox_inches="tight",pad_inches=0.0)
     plt.close()
 print("FPS: %s" % (1/(TIME/5)))
 

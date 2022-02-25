@@ -9,7 +9,7 @@ from torch.autograd import Variable
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, num_classes=6):
+    def __init__(self, num_classes=1):
         super(FocalLoss, self).__init__()
         self.num_classes = num_classes
 
@@ -93,6 +93,6 @@ class FocalLoss(nn.Module):
         # cls_loss = self.focal_loss(masked_cls_preds, cls_targets[pos_neg])
         num_pos = max(1.0, num_pos.item())
 
-        print('loc_loss: %.3f | cls_loss: %.3f' % (loc_loss.item()/num_pos, cls_loss.item()/num_pos), end=' | ')
+        # print('loc_loss: %.3f | cls_loss: %.3f' % (loc_loss.item()/num_pos, cls_loss.item()/num_pos), end=' | ')
         loss = (loc_loss+cls_loss)/num_pos
-        return loss
+        return loss,loc_loss/num_pos, cls_loss/num_pos

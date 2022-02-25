@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 
 print('Loading model..')
 net = RetinaNet()
-net.load_state_dict(torch.load('./checkpoint/params.pth'))
+net.load_state_dict(torch.load('./weights/ckpt_follow_gmy1_epoch78.pth'))
 net.eval()
 
 transform = transforms.Compose([
@@ -19,7 +19,12 @@ transform = transforms.Compose([
 ])
 
 print('Loading image..')
-img = Image.open('./image/000001.jpg')
+img = Image.open('/home/ecust/txx/dataset/smoke/IR/real/IR_smoke_research_group/valid/image/41_0.png')
+
+# print(img.mode)
+# img=img.convert('RGB')
+# print(img.mode)
+
 w = h = 600
 img = img.resize((w,h))
 
