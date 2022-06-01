@@ -37,7 +37,7 @@ parser.add_argument('--lr_decay_gamma', dest='lr_decay_gamma', default=0.1, type
 # parser.add_argument("--resume", default=False)
 
 parser.add_argument("--dataset", type=str, default="composite_18.1_gmy", help="dataset name used for training")###########
-parser.add_argument("--save_folder", type=str, default="checkpoints/retinanet_gas", help="folder name used for save weight when training")
+parser.add_argument("--save_folder", type=str, default="checkpoints/gas_retinanet_", help="folder name used for save weight when training")
 
 args = parser.parse_args()
 

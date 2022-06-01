@@ -23,7 +23,6 @@ from matplotlib.ticker import NullLocator
 import warnings
 warnings.filterwarnings("ignore")
 
-thresh=0.7#################################################################################################################
 
 # the_classes = ['smoke']################################################################################################
 the_classes = ['gas']
@@ -54,17 +53,18 @@ class ImageFolder(Dataset):
         return len(self.files)
 
 parser = argparse.ArgumentParser(description='RetinaNet Detection')
-parser.add_argument('--trained_model', default='weights/weight_retinanet_composite18.1_epoch4.pth',type=str, help='Trained state_dict file path to open')#####
+parser.add_argument('--trained_model', default='weights/weight_retinanet_composite18.1_epoch0.pth',type=str, help='Trained state_dict file path to open')#####
 parser.add_argument('--save_folder', default='detection/', type=str,help='Dir to save results')
 parser.add_argument('--dataset_root', default='data/dataset/real/real_7_gmy/val/image', help='Dataset root directory path')###############
 parser.add_argument("--batch_size", type=int, default=1, help="size of the batches")
 parser.add_argument("--n_cpu", type=int, default=0, help="number of cpu threads to use during batch generation")
 parser.add_argument("--img_size", type=int, default=300, help="size of each image dimension")
+parser.add_argument("--conf_thresh", type=float, default=0.7, help="conf_thresh")
 args = parser.parse_args()
 
 det_dataset="real_7_gmy"####################################
 train_dataset="composite18.1"##################################
-detect_folder=os.path.join(args.save_folder,"det_retinanet_{}_confThresh{}_trainOn{}".format(det_dataset,thresh,train_dataset))
+detect_folder=os.path.join(args.save_folder,"det_retinanet_{}_confThresh{}_trainOn{}".format(det_dataset,args.conf_thresh,train_dataset))
 os.makedirs(detect_folder, exist_ok=True)
 
 net = RetinaNet()
@@ -93,7 +93,7 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
     # print('Decoding..')
     encoder = DataEncoder()
     # boxes, labels = encoder.decode(loc_preds.data.squeeze(), cls_preds.data.squeeze(), (w, h))
-    boxes, labels, scores = encoder.decode(loc_preds.data, cls_preds.data, thresh, (args.img_size, args.img_size))
+    boxes, labels, scores = encoder.decode(loc_preds.data, cls_preds.data, args.conf_thresh, (args.img_size, args.img_size))
 
     current_time = time.time()
     inference_time = current_time - prev_time
@@ -143,10 +143,10 @@ for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
             plt.text(
                 pt[0],
                 pt[1],
-                s=cls_name+" {:.2f}".format(score[i]),
-                color="red",
+                s=cls_name+": {:.2f}".format(score[i]),
+                color="yellow",
                 verticalalignment="top",
-                bbox={"color": color, "pad": 0},
+                # bbox={"color": color, "pad": 0},
             )
 
             # Save generated image with detections

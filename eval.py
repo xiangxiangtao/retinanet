@@ -243,7 +243,7 @@ def evaluation(net, batch_sizes, testloader, the_classes, encoder, thresh, w, h,
         # print('Decoding..')
         boxes, labels,scores = encoder.decode(loc_preds.data, cls_preds.data,thresh, (w, h))
         detect_time = _t['im_detect'].toc(average=True)
-        # print('current_im_detect: {:d}/{:d} {:.3f}s'.format(batch_idx + 1, len(testloader), detect_time))
+        print('current_im_detect: {:d}/{:d} {:.3f}s'.format(batch_idx + 1, len(testloader), detect_time))
 
         # print( boxes, labels,scores)
         boxes=boxes.unsqueeze(0)
@@ -330,8 +330,9 @@ def evaluate(model, transform, eval_path, batch_sizes, thresh, im_size, eval_cla
     return map
 
 
-def test_one_weight():
+def test_one_weight(weight_path):
     print("test_one_weight")
+    print("weight_path={}".format(weight_path))
     batch_sizes = 1
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -361,7 +362,7 @@ def test_one_weight():
     # net = torch.nn.DataParallel(net)
     # cudnn.benchmark = True
 
-    net.load_state_dict(torch.load('weights/weight_retinanet_composite18.1_epoch4.pth'))#############
+    net.load_state_dict(torch.load(weight_path))#############
     evaluate(net,transform,eval_path,batch_sizes,thresh=0.01,im_size = 300,eval_classes=eval_classes,dataset_source=dataset_source,dataset_name=dataset_name,set_name=set_name,ext=ext)
 
 
@@ -399,7 +400,8 @@ def test_weights_in_folder():
     # net = torch.nn.DataParallel(net)
     # cudnn.benchmark = True
 
-    weights_folder="checkpoints/retinanet_gas_composite18.1"################################################################
+    # weights_folder="checkpoints/retinanet_gas_composite18.1"################################################################
+    weights_folder = "checkpoints/gas_retinanet_"  ################################################################
     weight_list=os.listdir(weights_folder)
     weight_list.sort(key=lambda x:int(x[x.index("_")+1:x.index(".pth")]))
     for weight in weight_list:
@@ -412,8 +414,9 @@ def test_weights_in_folder():
 
 
 if __name__ == '__main__':
-    # test_one_weight()
+    weight_path = "weights/weight_retinanet_composite18.1_epoch9.pth"
+    test_one_weight(weight_path)
 
-    test_weights_in_folder()
+    # test_weights_in_folder()
 
 
