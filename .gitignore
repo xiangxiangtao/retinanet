@@ -1,15 +1,18 @@
-checkpoints/
-data/NEU-DET/train
-data/NEU-DET/valid
-data/samples/*.jpg
+checkpoints/*
+!checkpoints/.gitkeep
 detection_result/
 output/
-model/
+model/*
+!model/.gitkeep
 result/
-weights/
+weights/*
+.weights/.gitkeep
 __pycache__
 
-data/
-detection/
+data/*
+!data/.gitkeep
+detection/*
+!detection/.gitkeep
 eval/
-logs/
+logs/*
+!logs/.gitkeep
